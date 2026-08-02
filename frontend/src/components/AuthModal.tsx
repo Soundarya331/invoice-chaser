@@ -2,10 +2,32 @@ import React, { useState } from 'react';
 import api from '../api';
 import type { UserProfile } from '../types';
 
-
 interface AuthModalProps {
   onSuccess: (user: UserProfile) => void;
 }
+
+const parseApiError = (data: any): string => {
+  if (!data) return 'An unexpected error occurred.';
+  if (typeof data === 'string') return data;
+  if (data.detail) return data.detail;
+  if (data.error) return data.error;
+  if (data.message) return data.message;
+  
+  if (typeof data === 'object') {
+    const messages: string[] = [];
+    for (const key of Object.keys(data)) {
+      const val = data[key];
+      if (Array.isArray(val)) {
+        messages.push(`${key !== 'non_field_errors' ? `${key}: ` : ''}${val.join(' ')}`);
+      } else if (typeof val === 'string') {
+        messages.push(`${key !== 'non_field_errors' ? `${key}: ` : ''}${val}`);
+      }
+    }
+    if (messages.length > 0) return messages.join(' | ');
+  }
+  
+  return 'Authentication failed. Please check your inputs.';
+};
 
 export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -41,7 +63,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
         onSuccess(res.data.user);
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || 'Authentication failed. Please check your credentials.');
+      setError(parseApiError(err.response?.data));
     } finally {
       setLoading(false);
     }
@@ -58,8 +80,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
         </p>
 
         {error && (
-          <div className="bg-[#F5E5DF] text-[#B5533C] text-xs p-3 rounded mb-4 border border-[#B5533C]/20">
-            {error}
+          <div className="bg-[#F5E5DF] text-[#B5533C] text-xs p-3 rounded mb-4 border border-[#B5533C]/20 font-medium">
+            ⚠️ {error}
           </div>
         )}
 
@@ -134,7 +156,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
         <div className="mt-6 text-center text-xs text-[#5B6672]">
           {isLogin ? "Don't have an account?" : 'Already registered?'}
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError('');
+            }}
             className="ml-2 text-[#1E2A38] font-semibold underline cursor-pointer"
           >
             {isLogin ? 'Create one now' : 'Sign in here'}
