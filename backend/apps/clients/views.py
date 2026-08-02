@@ -4,16 +4,11 @@ from apps.clients.serializers import ClientSerializer
 
 class ClientViewSet(viewsets.ModelViewSet):
     serializer_class = ClientSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Filter clients by current user or return all for dev
-        return Client.objects.all()
+        # Strict multi-tenant isolation: user only sees their own clients
+        return Client.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        # Auto-assign user if authenticated, or grab first user
-        user = self.request.user if self.request.user.is_authenticated else None
-        if not user:
-            from django.contrib.auth.models import User
-            user = User.objects.first()
-        serializer.save(user=user)
+        serializer.save(user=self.request.user)

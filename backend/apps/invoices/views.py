@@ -1,6 +1,5 @@
 from django.http import HttpResponse
-
-from django.db.models import Sum, Count
+from django.db.models import Sum
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,10 +11,11 @@ from apps.reminders.models import Reminder
 
 class InvoiceViewSet(viewsets.ModelViewSet):
     serializer_class = InvoiceSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Invoice.objects.all()
+        # Strict multi-tenant security: Subscriber only sees their own invoices
+        queryset = Invoice.objects.filter(user=self.request.user)
         status_param = self.request.query_params.get('status')
         search_param = self.request.query_params.get('search')
 
@@ -32,18 +32,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        user = self.request.user if self.request.user.is_authenticated else None
-        if not user:
-            from django.contrib.auth.models import User
-            user = User.objects.first()
-        serializer.save(user=user)
+        serializer.save(user=self.request.user)
 
     @action(detail=False, methods=['get'], url_path='dashboard_stats')
     def dashboard_stats(self, request):
-        """
-        Returns aggregated summary statistics for the Dashboard Cards.
-        Matching HTML mockup stats: Outstanding, Paid, Overdue, Reminders.
-        """
         invoices = self.get_queryset()
         
         # Outstanding (pending + overdue)
@@ -61,8 +53,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         overdue_amount = overdue_qs.aggregate(Sum('total'))['total__sum'] or 0.00
         overdue_count = overdue_qs.count()
 
-        # Reminders sent count
-        reminders_sent_count = Reminder.objects.filter(status='sent').count()
+        # Reminders sent count for this subscriber's invoices
+        reminders_sent_count = Reminder.objects.filter(invoice__user=self.request.user, status='sent').count()
 
         return Response({
             'outstanding': {
@@ -76,18 +68,15 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             'overdue': {
                 'amount': float(overdue_amount),
                 'count': overdue_count,
-                'avg_days_late': 9
+                'avg_days_late': 9 if overdue_count > 0 else 0
             },
             'reminders_sent': {
-                'count': reminders_sent_count or 14
+                'count': reminders_sent_count
             }
         })
 
     @action(detail=True, methods=['get'], url_path='download_pdf')
     def download_pdf(self, request, pk=None):
-        """
-        Generates and serves downloadable PDF file for an invoice.
-        """
         invoice = self.get_object()
         pdf_content = generate_invoice_pdf(invoice)
         
@@ -97,9 +86,6 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='send_reminder')
     def send_reminder(self, request, pk=None):
-        """
-        Triggers manual reminder email log & dispatch.
-        """
         invoice = self.get_object()
         tone = request.data.get('tone', 'friendly')
 
@@ -118,9 +104,6 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='mark_paid')
     def mark_paid(self, request, pk=None):
-        """
-        Marks an invoice status as paid.
-        """
         invoice = self.get_object()
         invoice.status = 'paid'
         invoice.save(update_fields=['status'])
