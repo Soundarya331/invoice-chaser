@@ -25,6 +25,21 @@ class InvoiceSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at']
 
+    def validate(self, data):
+        request = self.context.get('request')
+        invoice_number = data.get('invoice_number')
+        
+        # Determine the user making the request
+        user = request.user if (request and request.user and request.user.is_authenticated) else None
+        
+        # Check uniqueness per user on creation
+        if not self.instance and user and invoice_number:
+            if Invoice.objects.filter(user=user, invoice_number=invoice_number).exists():
+                raise serializers.ValidationError({
+                    'invoice_number': f"Invoice number '{invoice_number}' already exists for your account. Please use a unique invoice number."
+                })
+        return data
+
     def create(self, validated_data):
         items_data = validated_data.pop('items', [])
         invoice = Invoice.objects.create(**validated_data)
