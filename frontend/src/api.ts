@@ -1,7 +1,17 @@
 import axios from 'axios';
 
-// Automatically uses environment variable on Vercel or falls back to local Django server
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
+// Smart URL Normalizer: Ensures /api/v1 is ALWAYS appended regardless of Vercel env variable trailing slashes
+const getBaseUrl = (): string => {
+  let envUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
+  envUrl = envUrl.trim().replace(/\/+$/, '');
+  
+  if (!envUrl.endsWith('/api/v1')) {
+    envUrl = `${envUrl}/api/v1`;
+  }
+  return envUrl;
+};
+
+export const API_BASE_URL = getBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
