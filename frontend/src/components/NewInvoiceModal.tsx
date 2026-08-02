@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Client } from '../types';
-
 import api from '../api';
+import { parseApiError } from '../utils';
 
 interface NewInvoiceModalProps {
   clients: Client[];
@@ -66,7 +66,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, onClo
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to create invoice.');
+      setError(parseApiError(err.response?.data));
     } finally {
       setLoading(false);
     }
@@ -82,7 +82,11 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, onClo
           </button>
         </div>
 
-        {error && <div className="bg-[#F5E5DF] text-[#B5533C] text-xs p-3 rounded mb-4">{error}</div>}
+        {error && (
+          <div className="bg-[#F5E5DF] text-[#B5533C] text-xs p-3 rounded mb-4 border border-[#B5533C]/20 font-medium">
+            ⚠️ {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-sm">
           <div className="grid grid-cols-2 gap-4">

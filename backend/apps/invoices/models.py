@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import User
 from apps.clients.models import Client
@@ -15,9 +16,9 @@ class Invoice(models.Model):
     issue_date = models.DateField()
     due_date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    tax = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    total = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    tax = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     notes = models.TextField(blank=True, null=True)
     automate_enabled = models.BooleanField(default=True, help_text="If True, Celery background worker auto-sends reminders")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,11 +28,11 @@ class Invoice(models.Model):
         unique_together = ['user', 'invoice_number']
 
     def recalculate_totals(self):
-        """Recalculates subtotal, tax, and total based on attached InvoiceItems."""
-        items_total = sum(item.amount for item in self.items.all())
-        self.subtotal = items_total
-        # Keep tax as provided or default 0, then calculate total
-        self.total = self.subtotal + self.tax
+        """Recalculates subtotal, tax, and total strictly using Decimal arithmetic."""
+        items_total = sum((item.amount for item in self.items.all()), Decimal('0.00'))
+        self.subtotal = Decimal(str(items_total))
+        tax_decimal = Decimal(str(self.tax or '0.00'))
+        self.total = self.subtotal + tax_decimal
         self.save(update_fields=['subtotal', 'total'])
 
     def __str__(self):
@@ -46,7 +47,7 @@ class InvoiceItem(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
 
     def save(self, *args, **kwargs):
-        self.amount = self.quantity * self.unit_price
+        self.amount = Decimal(str(self.quantity)) * Decimal(str(self.unit_price))
         super().save(*args, **kwargs)
 
     def __str__(self):

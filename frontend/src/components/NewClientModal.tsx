@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../api';
+import { parseApiError } from '../utils';
 
 interface NewClientModalProps {
   onClose: () => void;
@@ -25,7 +26,7 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ onClose, onSucce
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to add client.');
+      setError(parseApiError(err.response?.data));
     } finally {
       setLoading(false);
     }
@@ -41,7 +42,11 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ onClose, onSucce
           </button>
         </div>
 
-        {error && <div className="bg-[#F5E5DF] text-[#B5533C] text-xs p-3 rounded mb-4">{error}</div>}
+        {error && (
+          <div className="bg-[#F5E5DF] text-[#B5533C] text-xs p-3 rounded mb-4 border border-[#B5533C]/20 font-medium">
+            ⚠️ {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3 text-sm">
           <div>
