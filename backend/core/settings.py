@@ -4,8 +4,12 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
+
 import sys
 sys.path.insert(0, str(BASE_DIR / 'apps'))
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -128,5 +132,21 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Brevo (Sendinblue) Email Settings
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+
+# SMTP Email Configuration (Brevo SMTP Relay)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp-relay.brevo.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')  # Your Brevo Account Email / SMTP Login
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')  # Your Brevo SMTP Key
+
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'invoices@invoicechaser.com')
+DEFAULT_FROM_NAME = os.environ.get('DEFAULT_FROM_NAME', 'InvoiceChaser Reminders')
+
+
 
 

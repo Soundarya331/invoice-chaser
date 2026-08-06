@@ -8,6 +8,7 @@ from apps.invoices.models import Invoice
 from apps.invoices.serializers import InvoiceSerializer
 from apps.invoices.utils import generate_invoice_pdf
 from apps.reminders.models import Reminder
+from apps.reminders.brevo_service import send_brevo_reminder_email
 
 class InvoiceViewSet(viewsets.ModelViewSet):
     serializer_class = InvoiceSerializer
@@ -89,18 +90,22 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         invoice = self.get_object()
         tone = request.data.get('tone', 'friendly')
 
+        email_res = send_brevo_reminder_email(invoice, tone=tone)
+
         reminder = Reminder.objects.create(
             invoice=invoice,
             tone=tone,
-            email_subject=f"Payment Reminder: Invoice {invoice.invoice_number}",
-            email_body=f"Dear {invoice.client.name}, please find attached your invoice {invoice.invoice_number} for ₹{invoice.total}.",
-            status='sent'
+            email_subject=email_res.get('subject', f"Payment Reminder: Invoice {invoice.invoice_number}"),
+            email_body=email_res.get('body', ''),
+            status='sent' if email_res.get('success') else 'failed'
         )
 
         return Response({
-            'message': f"Reminder sent to {invoice.client.email}",
-            'reminder_id': reminder.id
-        }, status=status.HTTP_200_OK)
+            'message': email_res.get('message', f"Reminder processed for {invoice.client.email}"),
+            'simulated': email_res.get('simulated', False),
+            'reminder_id': reminder.id,
+            'status': reminder.status
+        }, status=status.HTTP_200_OK if email_res.get('success') else status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['post'], url_path='mark_paid')
     def mark_paid(self, request, pk=None):
