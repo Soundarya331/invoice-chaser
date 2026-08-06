@@ -89,3 +89,14 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class UserListView(generics.ListAPIView):
+    """
+    Endpoint: GET /api/v1/auth/users/
+    Returns a list of all registered users in the database.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
+

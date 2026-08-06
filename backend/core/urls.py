@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from apps.clients.views import ClientViewSet
 from apps.invoices.views import InvoiceViewSet
 from apps.reminders.views import ReminderViewSet
-from apps.users.views import RegisterView, LoginView, ProfileView
+from apps.users.views import RegisterView, LoginView, ProfileView, UserListView
 
 router = DefaultRouter()
 router.register(r'clients', ClientViewSet, basename='client')
@@ -19,5 +19,6 @@ urlpatterns = [
     path('api/v1/auth/login/', LoginView.as_view(), name='login'),
     path('api/v1/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/auth/profile/', ProfileView.as_view(), name='profile'),
+    path('api/v1/auth/users/', UserListView.as_view(), name='user_list'),
     path('api/v1/', include(router.urls)),
 ]
