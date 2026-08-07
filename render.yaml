@@ -4,7 +4,7 @@ services:
     name: invoice-chaser-api
     runtime: python
     rootDir: backend
-    buildCommand: "pip install -r requirements.txt && python manage.py migrate"
+    buildCommand: "pip install -r requirements.txt && python manage.py migrate && python seed_data.py"
     startCommand: "gunicorn core.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
