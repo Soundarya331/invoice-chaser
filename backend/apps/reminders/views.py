@@ -4,5 +4,7 @@ from apps.reminders.serializers import ReminderSerializer
 
 class ReminderViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ReminderSerializer
-    permission_classes = [permissions.AllowAny]
-    queryset = Reminder.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Reminder.objects.filter(invoice__user=self.request.user)

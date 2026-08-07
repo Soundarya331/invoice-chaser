@@ -15,9 +15,9 @@ sys.path.insert(0, str(BASE_DIR / 'apps'))
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-invoice-chaser-demo-key-change-in-prod-12345')
 
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', '*').split(',') if host.strip()]
 
 # Application definition
 INSTALLED_APPS = [
@@ -156,6 +156,21 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')  # Your Brevo SM
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'invoices@invoicechaser.com')
 DEFAULT_FROM_NAME = os.environ.get('DEFAULT_FROM_NAME', 'InvoiceChaser Reminders')
+
+# Celery & Celery Beat Schedule Settings
+from celery.schedules import crontab
+CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+CELERY_BEAT_SCHEDULE = {
+    'check_and_send_automated_reminders_every_6_hours': {
+        'task': 'apps.reminders.tasks.check_and_send_automated_reminders',
+        'schedule': crontab(minute=0, hour='*/6'),
+    },
+}
+
 
 
 

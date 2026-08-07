@@ -15,8 +15,8 @@
 
 ## 📊 Data Models & Architecture
 
-### User (Freelancer)
-- `id`, `name`, `email`, `business_name`, `brevo_api_key` (encrypted), `created_at`
+### User (Freelancer / Subscriber)
+- `id`, `name`, `email`, `business_name`, `brevo_api_key_encrypted` (Fernet encrypted), `default_reminder_interval`, `created_at`
 
 ### Client
 - `id`, `user_id` (FK), `name`, `email`, `company`, `phone`, `notes`, `created_at`

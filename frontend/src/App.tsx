@@ -154,18 +154,18 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-9 max-w-7xl">
+      <main className="flex-1 p-4 md:p-9 pt-20 md:pt-9 max-w-7xl w-full overflow-hidden">
         {/* Toast Notification */}
         {notification && (
-          <div className="fixed top-5 right-5 bg-[#1E2A38] text-[#F1E9D6] px-4 py-3 rounded shadow-xl border border-[#C9A96A]/30 text-xs font-mono-code z-50 animate-bounce">
+          <div className="fixed top-20 md:top-5 right-5 bg-[#1E2A38] text-[#F1E9D6] px-4 py-3 rounded shadow-xl border border-[#C9A96A]/30 text-xs font-mono-code z-50 animate-bounce">
             {notification}
           </div>
         )}
 
         {/* Topbar */}
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-0 mb-8">
           <div>
-            <h1 className="font-serif-brand text-3xl font-semibold text-[#1E2A38]">
+            <h1 className="font-serif-brand text-2xl md:text-3xl font-semibold text-[#1E2A38]">
               {currentTab === 'dashboard' && 'Dashboard'}
               {currentTab === 'invoices' && 'Invoices Ledger'}
               {currentTab === 'clients' && 'Clients Directory'}
@@ -176,16 +176,16 @@ export function App() {
               {currentDateStr} — {stats.overdue.count} invoices need attention
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowNewClientModal(true)}
-              className="bg-transparent border border-[#DAD4C4] hover:border-[#1E2A38] text-[#1E2A38] px-4 py-2.5 text-[13.5px] font-medium rounded transition flex items-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-none bg-transparent border border-[#DAD4C4] hover:border-[#1E2A38] text-[#1E2A38] px-4 py-2.5 text-[13.5px] font-medium rounded transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <UserPlus className="w-4 h-4 text-[#8A6D3B]" /> + Add Client
             </button>
             <button
               onClick={() => setShowNewInvoiceModal(true)}
-              className="bg-[#1E2A38] hover:bg-[#14202D] text-[#F1E9D6] px-5 py-2.5 text-[13.5px] font-medium rounded transition flex items-center gap-2 cursor-pointer shadow-sm"
+              className="flex-1 sm:flex-none bg-[#1E2A38] hover:bg-[#14202D] text-[#F1E9D6] px-5 py-2.5 text-[13.5px] font-medium rounded transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
               <Plus className="w-4 h-4 text-[#C9A96A]" /> + New Invoice
             </button>
@@ -193,7 +193,7 @@ export function App() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-9">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-9">
           {/* Outstanding Card */}
           <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-md p-[18px_20px] relative shadow-sm">
             <div className="text-[11px] uppercase tracking-widest text-[#5B6672] mb-2.5 font-medium">
@@ -378,101 +378,106 @@ export function App() {
             </div>
 
             {/* Invoices Table */}
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-[#DAD4C4] bg-[#F6F4EF]/50">
-                  <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
-                    Invoice
-                  </th>
-                  <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
-                    Client
-                  </th>
-                  <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
-                    Issued
-                  </th>
-                  <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
-                    Amount
-                  </th>
-                  <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
-                    Status
-                  </th>
-                  <th className="text-right text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-8 text-xs text-[#5B6672]">
-                      No invoices found matching criteria.
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-[#DAD4C4] bg-[#F6F4EF]/50">
+                    <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
+                      Invoice
+                    </th>
+                    <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
+                      Client
+                    </th>
+                    <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
+                      Issued
+                    </th>
+                    <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
+                      Amount
+                    </th>
+                    <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
+                      Status
+                    </th>
+                    <th className="text-right text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  invoices.map((inv) => (
-                    <tr
-                      key={inv.id}
-                      className="border-b border-[#DAD4C4] hover:bg-[#FBF9F3] transition text-[14px]"
-                    >
-                      <td className="px-5 py-4 font-mono-code text-[#5B6672] text-[12.5px] font-semibold">
-                        {inv.invoice_number}
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="font-medium text-[#1E2A38]">
-                          {inv.client_detail?.name || 'Client'}
-                        </div>
-                        <div className="text-xs text-[#5B6672]">
-                          {inv.client_detail?.email || ''}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-xs text-[#5B6672]">
-                        {inv.issue_date}
-                      </td>
-                      <td className="px-5 py-4 font-mono-code font-semibold text-[#1E2A38]">
-                        ₹{inv.total.toLocaleString('en-IN')}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className={`stamp stamp-${inv.status}`}>
-                          {inv.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <div className="flex items-center justify-end gap-3 text-xs">
-                          {/* 1-Click PDF Download */}
-                          <button
-                            onClick={() => handleDownloadPDF(inv)}
-                            className="text-[#5B6672] hover:text-[#1E2A38] flex items-center gap-1 cursor-pointer font-mono-code"
-                            title="Download PDF"
-                          >
-                            <Download className="w-3.5 h-3.5" /> PDF
-                          </button>
-
-                          {/* 1-Click Send Reminder */}
-                          {inv.status !== 'paid' && (
-                            <button
-                              onClick={() => handleSendReminder(inv)}
-                              className="text-[#8A6D3B] hover:text-[#1E2A38] flex items-center gap-1 font-medium cursor-pointer"
-                            >
-                              <Mail className="w-3.5 h-3.5" /> Remind →
-                            </button>
-                          )}
-
-                          {/* 1-Click Mark Paid */}
-                          {inv.status !== 'paid' && (
-                            <button
-                              onClick={() => handleMarkPaid(inv)}
-                              className="text-[#2F6F4F] hover:underline flex items-center gap-1 font-medium cursor-pointer"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Mark Paid
-                            </button>
-                          )}
-                        </div>
+                </thead>
+                <tbody>
+                  {invoices.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-12 text-[#5B6672] text-sm">
+                        No invoices found matching current filter.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    invoices.map((inv) => (
+                      <tr
+                        key={inv.id}
+                        className="border-b border-[#DAD4C4]/60 hover:bg-[#F6F4EF]/40 transition text-sm"
+                      >
+                        <td className="px-5 py-3.5 font-mono-code font-semibold text-[#1E2A38]">
+                          {inv.invoice_number}
+                        </td>
+                        <td className="px-5 py-3.5 text-[#1E2A38]">
+                          {inv.client_detail?.name || `Client #${inv.client}`}
+                        </td>
+                        <td className="px-5 py-3.5 text-[#5B6672] text-xs font-mono-code">
+                          {inv.issue_date}
+                        </td>
+                        <td className="px-5 py-3.5 font-mono-code font-medium text-[#1E2A38]">
+                          ₹{inv.total.toLocaleString('en-IN')}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-medium uppercase tracking-wider ${
+                              inv.status === 'paid'
+                                ? 'bg-[#EAF3EC] text-[#2F6F4F]'
+                                : inv.status === 'overdue'
+                                ? 'bg-[#F5E5DF] text-[#B5533C]'
+                                : 'bg-[#FDF4E3] text-[#B4872F]'
+                            }`}
+                          >
+                            {inv.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-3 text-xs">
+                            {/* 1-Click PDF Download */}
+                            <button
+                              onClick={() => handleDownloadPDF(inv)}
+                              className="text-[#5B6672] hover:text-[#1E2A38] flex items-center gap-1 cursor-pointer font-mono-code"
+                              title="Download PDF"
+                            >
+                              <Download className="w-3.5 h-3.5" /> PDF
+                            </button>
+
+                            {/* 1-Click Send Reminder */}
+                            {inv.status !== 'paid' && (
+                              <button
+                                onClick={() => handleSendReminder(inv)}
+                                className="text-[#8A6D3B] hover:text-[#1E2A38] flex items-center gap-1 font-medium cursor-pointer"
+                              >
+                                <Mail className="w-3.5 h-3.5" /> Remind →
+                              </button>
+                            )}
+
+                            {/* 1-Click Mark Paid */}
+                            {inv.status !== 'paid' && (
+                              <button
+                                onClick={() => handleMarkPaid(inv)}
+                                className="text-[#2F6F4F] hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Mark Paid
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

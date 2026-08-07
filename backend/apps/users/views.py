@@ -93,10 +93,10 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
 class UserListView(generics.ListAPIView):
     """
-    Endpoint: GET /api/v1/auth/users/
-    Returns a list of all registered users in the database.
+    Protected Admin Endpoint: GET /api/v1/auth/users/
+    Returns a list of all registered users in the database (Admin only).
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAdminUser]
 
