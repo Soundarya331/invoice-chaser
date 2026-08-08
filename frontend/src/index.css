@@ -19,9 +19,9 @@ body {
   background-color: var(--paper);
   color: var(--ink);
   font-family: 'Work Sans', sans-serif;
-  background-image: linear-gradient(var(--paper-line) 1px, transparent 1px);
-  background-size: 100% 32px;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-serif-brand {
