@@ -661,8 +661,12 @@ export function App() {
           </div>
         )}
 
-        <div className="mt-5 text-center text-[11.5px] text-[#5B6672] font-mono-code">
-          — end of ledger —
+        <div className="mt-8 mb-4 flex items-center justify-center gap-3">
+          <div className="h-[1px] bg-[#DAD4C4] flex-1 max-w-[100px]"></div>
+          <span className="bg-[#FFFEFB] border border-[#DAD4C4] text-[#5B6672] px-3 py-1 rounded-full text-[11px] font-mono-code uppercase tracking-wider font-semibold shadow-xs">
+            End of Ledger
+          </span>
+          <div className="h-[1px] bg-[#DAD4C4] flex-1 max-w-[100px]"></div>
         </div>
       </main>
 
