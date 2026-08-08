@@ -5,67 +5,146 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
-  :root {
+  /* =========================================================
+     InvoiceFlow Clean High-Contrast Light & Dark Admin Theme
+     ========================================================= */
+
+  /* 1. Global Brand Variable Overrides (Light Mode) */
+  :root, [data-theme="light"] {
     --primary: #1E2A38;
+    --secondary: #14202D;
     --accent: #C9A96A;
-    --bg: #F6F4EF;
-    --card: #FFFEFB;
-    --border: #DAD4C4;
-    --text: #1E2A38;
-    --muted: #5B6672;
+    
+    --body-bg: #F6F4EF;
+    --body-fg: #1E2A38;
+    --body-quiet-color: #5B6672;
+    
+    --header-bg: #1E2A38;
+    --header-color: #F1E9D6;
+    --header-link-color: #C9A96A;
+    
+    --breadcrumbs-bg: #14202D;
+    --breadcrumbs-fg: #E8E4D8;
+    --breadcrumbs-link-fg: #C9A96A;
+    
+    --link-fg: #1E2A38;
+    --link-hover-color: #C9A96A;
+    --link-selected-fg: #1E2A38;
+    
+    --hairline-color: #DAD4C4;
+    --border-color: #DAD4C4;
+    
+    --darkened-bg: #EAE6DB;
+    --selected-bg: #EAE6DB;
+    --selected-row: #F0EDE5;
+    
+    --button-bg: #1E2A38;
+    --button-fg: #F1E9D6;
+    --button-hover-bg: #14202D;
+
+    --default-button-bg: #1E2A38;
+    --default-button-fg: #F1E9D6;
+    --default-button-hover-bg: #14202D;
+
+    --delete-button-bg: #B5533C;
+    --delete-button-hover-bg: #8F3E2B;
+    
+    --message-success-bg: #EAF3EC;
+    --message-error-bg: #F5E5DF;
   }
-  body, html {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    background-color: var(--bg) !important;
-    color: var(--text) !important;
+
+  /* 2. Dark Mode High-Contrast Overrides */
+  [data-theme="dark"] {
+    --primary: #1E2A38;
+    --secondary: #14202D;
+    --accent: #C9A96A;
+    
+    --body-bg: #121820;
+    --body-fg: #F1E9D6;
+    --body-quiet-color: #A0ABBA;
+    
+    --header-bg: #1A2430;
+    --header-color: #F1E9D6;
+    --header-link-color: #C9A96A;
+    
+    --breadcrumbs-bg: #0E141B;
+    --breadcrumbs-fg: #C4C9D2;
+    --breadcrumbs-link-fg: #C9A96A;
+    
+    --link-fg: #E0D5BE;
+    --link-hover-color: #C9A96A;
+    --link-selected-fg: #F1E9D6;
+    
+    --hairline-color: #2A3644;
+    --border-color: #2A3644;
+    
+    --darkened-bg: #1A232E;
+    --selected-bg: #222D3A;
+    --selected-row: #222D3A;
+    
+    --button-bg: #C9A96A;
+    --button-fg: #121820;
+    --button-hover-bg: #B89758;
+
+    --default-button-bg: #C9A96A;
+    --default-button-fg: #121820;
+    --default-button-hover-bg: #B89758;
+
+    --delete-button-bg: #C94C38;
+    --delete-button-hover-bg: #A33A29;
+
+    --message-success-bg: #1C3326;
+    --message-error-bg: #3B1B17;
   }
-  #header {
-    background: var(--primary) !important;
-    color: #F1E9D6 !important;
-    padding: 12px 24px !important;
-  }
-  #header a:link, #header a:visited {
-    color: #F1E9D6 !important;
-  }
-  #branding h1 {
-    font-family: Georgia, serif !important;
-    font-size: 20px !important;
+
+  /* 3. Module & Sidebar Section Headers */
+  .module h2, .module caption, #changelist-filter h2, #changelist-filter h3, #nav-sidebar .caption {
+    background: var(--header-bg) !important;
+    color: var(--header-color) !important;
     font-weight: 600 !important;
-    color: #F1E9D6 !important;
+    padding: 8px 12px !important;
   }
-  #branding h1 span {
+
+  #nav-sidebar .module th, #nav-sidebar .module td, #nav-sidebar .module a {
+    color: var(--body-fg) !important;
+  }
+
+  #changelist-filter {
+    background: var(--darkened-bg) !important;
+    border-left: 1px solid var(--border-color) !important;
+  }
+
+  #changelist-filter h2, #changelist-filter h3 {
+    color: var(--header-color) !important;
+  }
+
+  #changelist-filter a {
+    color: var(--body-fg) !important;
+  }
+
+  #changelist-filter a:hover {
     color: var(--accent) !important;
   }
-  div.breadcrumbs {
-    background: #14202D !important;
-    color: #C4C9D2 !important;
-  }
-  div.breadcrumbs a {
+
+  #changelist-filter li.selected a {
     color: var(--accent) !important;
+    font-weight: 700 !important;
   }
-  .module {
-    background: var(--card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 6px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
-    margin-bottom: 20px !important;
+
+  /* Table Headers & Text Contrast */
+  #changelist table th a {
+    color: var(--body-fg) !important;
   }
-  .module h2, .module caption, textarea {
-    background: #F0EDE5 !important;
-    color: var(--primary) !important;
-    font-weight: 600 !important;
+
+  #changelist table td, #changelist table th {
+    color: var(--body-fg) !important;
   }
-  button, input[type=submit], .button {
-    background: var(--primary) !important;
-    color: #F1E9D6 !important;
-    border: none !important;
-    border-radius: 4px !important;
-    padding: 8px 16px !important;
-    font-weight: 500 !important;
-    cursor: pointer !important;
-  }
-  button:hover, input[type=submit]:hover, .button:hover {
-    background: #14202D !important;
+
+  /* Search bar & Form Inputs Visibility */
+  input[type="text"], input[type="password"], input[type="email"], select, textarea {
+    color: var(--body-fg) !important;
+    background-color: var(--body-bg) !important;
+    border: 1px solid var(--border-color) !important;
   }
 </style>
 {% endblock %}
