@@ -419,7 +419,7 @@ export function App() {
                           {inv.invoice_number}
                         </td>
                         <td className="px-5 py-3.5 text-[#1E2A38]">
-                          {inv.client_detail?.name || `Client #${inv.client}`}
+                          {inv.client_detail?.name || `Client #${inv.client_id || inv.client || ''}`}
                         </td>
                         <td className="px-5 py-3.5 text-[#5B6672] text-xs font-mono-code">
                           {inv.issue_date}

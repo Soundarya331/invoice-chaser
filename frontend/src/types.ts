@@ -28,8 +28,9 @@ export interface InvoiceItem {
 export interface Invoice {
   id: number;
   invoice_number: string;
-  client_id: number;
-  client_detail: Client;
+  client?: number;
+  client_id?: number;
+  client_detail?: Client;
   issue_date: string;
   due_date: string;
   status: 'pending' | 'paid' | 'overdue';
