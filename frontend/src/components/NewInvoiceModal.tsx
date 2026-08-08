@@ -98,10 +98,10 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoi
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-lg p-6 max-w-2xl w-full my-8 shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-lg p-4 sm:p-6 max-w-2xl w-[95vw] sm:w-full my-4 sm:my-8 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4 border-b border-[#DAD4C4] pb-3">
-          <h2 className="font-serif-brand text-xl font-semibold text-[#1E2A38]">
+          <h2 className="font-serif-brand text-lg sm:text-xl font-semibold text-[#1E2A38]">
             {invoiceToEdit ? `Edit Invoice #${invoiceToEdit.invoice_number}` : 'Create New Invoice'}
           </h2>
           <button onClick={onClose} className="text-[#5B6672] hover:text-[#1E2A38] text-lg font-bold cursor-pointer">
@@ -116,7 +116,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoi
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-sm">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Invoice Number</label>
               <input
@@ -132,7 +132,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoi
               <select
                 value={clientId}
                 onChange={(e) => setClientId(Number(e.target.value))}
-                className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+                className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] text-xs sm:text-sm"
               >
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -143,7 +143,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoi
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Issue Date</label>
               <input
@@ -151,7 +151,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoi
                 required
                 value={issueDate}
                 onChange={(e) => setIssueDate(e.target.value)}
-                className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+                className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] text-xs sm:text-sm"
               />
             </div>
             <div>
@@ -161,7 +161,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoi
                 required
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+                className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] text-xs sm:text-sm"
               />
             </div>
             <div>
@@ -169,7 +169,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoi
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+                className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] text-xs sm:text-sm"
               >
                 <option value="pending">Pending</option>
                 <option value="overdue">Overdue</option>
@@ -190,44 +190,46 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoi
               </button>
             </div>
             {items.map((item, index) => (
-              <div key={index} className="flex gap-2 items-center mb-2">
+              <div key={index} className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center mb-3 p-2.5 sm:p-0 bg-[#F6F4EF]/60 sm:bg-transparent rounded sm:rounded-none border sm:border-0 border-[#DAD4C4]">
                 <input
                   type="text"
                   placeholder="Item Description"
                   required
                   value={item.description}
                   onChange={(e) => updateItem(index, 'description', e.target.value)}
-                  className="flex-1 bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-1.5 text-xs"
+                  className="w-full sm:flex-1 bg-[#FFFEFB] sm:bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-1.5 text-xs"
                 />
-                <input
-                  type="number"
-                  placeholder="Qty"
-                  min="1"
-                  required
-                  value={item.quantity}
-                  onChange={(e) => updateItem(index, 'quantity', Number(e.target.value))}
-                  className="w-16 bg-[#F6F4EF] border border-[#DAD4C4] rounded px-2 py-1.5 text-xs font-mono-code"
-                />
-                <input
-                  type="number"
-                  placeholder="Price ₹"
-                  required
-                  value={item.unit_price}
-                  onChange={(e) => updateItem(index, 'unit_price', Number(e.target.value))}
-                  className="w-28 bg-[#F6F4EF] border border-[#DAD4C4] rounded px-2 py-1.5 text-xs font-mono-code font-semibold"
-                />
-                {items.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeItem(index)}
-                    className="text-[#B5533C] text-xs px-2 py-1 cursor-pointer"
-                  >
-                    ✕
-                  </button>
-                )}
+                <div className="flex gap-2 w-full sm:w-auto items-center">
+                  <input
+                    type="number"
+                    placeholder="Qty"
+                    min="1"
+                    required
+                    value={item.quantity}
+                    onChange={(e) => updateItem(index, 'quantity', Number(e.target.value))}
+                    className="flex-1 sm:w-16 bg-[#FFFEFB] sm:bg-[#F6F4EF] border border-[#DAD4C4] rounded px-2 py-1.5 text-xs font-mono-code"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Price ₹"
+                    required
+                    value={item.unit_price}
+                    onChange={(e) => updateItem(index, 'unit_price', Number(e.target.value))}
+                    className="flex-1 sm:w-28 bg-[#FFFEFB] sm:bg-[#F6F4EF] border border-[#DAD4C4] rounded px-2 py-1.5 text-xs font-mono-code font-semibold"
+                  />
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeItem(index)}
+                      className="text-[#B5533C] text-xs px-2 py-1 cursor-pointer font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
-            <div className="text-right font-mono-code font-semibold text-[#1E2A38] mt-2">
+            <div className="text-right font-mono-code font-semibold text-[#1E2A38] mt-2 text-xs sm:text-sm">
               Calculated Total: ₹{calculatedSubtotal.toLocaleString('en-IN')}
             </div>
           </div>

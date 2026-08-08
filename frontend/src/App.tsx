@@ -425,8 +425,8 @@ export function App() {
           /* Main Ledger Table (Dashboard & Invoices View) */
           <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-md overflow-hidden shadow-sm">
             {/* Ledger Head */}
-            <div className="flex justify-between items-center p-4 px-5 border-b border-[#DAD4C4] bg-[#FFFEFB]">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 px-4 sm:px-5 border-b border-[#DAD4C4] bg-[#FFFEFB]">
+              <div className="flex items-center justify-between sm:justify-start gap-4">
                 <h2 className="font-serif-brand text-[17px] font-semibold text-[#1E2A38]">
                   Recent Invoices
                 </h2>
@@ -439,21 +439,21 @@ export function App() {
                 </button>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 {/* Search Bar */}
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[#5B6672]" />
+                <div className="relative w-full sm:w-auto">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 sm:top-2 text-[#5B6672]" />
                   <input
                     type="text"
                     placeholder="Search client or INV..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-[#F6F4EF] border border-[#DAD4C4] rounded-full pl-8 pr-3 py-1 text-xs text-[#1E2A38] focus:outline-none w-44"
+                    className="bg-[#F6F4EF] border border-[#DAD4C4] rounded-full pl-8 pr-3 py-1.5 sm:py-1 text-xs text-[#1E2A38] focus:outline-none w-full sm:w-44"
                   />
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex gap-1 text-[12.5px]">
+                <div className="flex flex-wrap gap-1 text-[12px] justify-start sm:justify-end">
                   {['all', 'paid', 'pending', 'overdue'].map((tab) => (
                     <button
                       key={tab}
@@ -472,8 +472,8 @@ export function App() {
             </div>
 
             {/* Invoices Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full border-collapse min-w-[640px]">
                 <thead>
                   <tr className="border-b border-[#DAD4C4] bg-[#F6F4EF]/50">
                     <th className="text-left text-[11px] uppercase tracking-wider text-[#5B6672] font-medium px-5 py-3">
@@ -509,16 +509,16 @@ export function App() {
                         key={inv.id}
                         className="border-b border-[#DAD4C4]/60 hover:bg-[#F6F4EF]/40 transition text-sm"
                       >
-                        <td className="px-5 py-3.5 font-mono-code font-semibold text-[#1E2A38]">
+                        <td className="px-5 py-3.5 font-mono-code font-semibold text-[#1E2A38] whitespace-nowrap">
                           {inv.invoice_number}
                         </td>
-                        <td className="px-5 py-3.5 text-[#1E2A38]">
+                        <td className="px-5 py-3.5 text-[#1E2A38] whitespace-nowrap">
                           {inv.client_detail?.name || `Client #${inv.client_id || inv.client || ''}`}
                         </td>
-                        <td className="px-5 py-3.5 text-[#5B6672] text-xs font-mono-code">
+                        <td className="px-5 py-3.5 text-[#5B6672] text-xs font-mono-code whitespace-nowrap">
                           {inv.issue_date}
                         </td>
-                        <td className="px-5 py-3.5 font-mono-code font-medium text-[#1E2A38]">
+                        <td className="px-5 py-3.5 font-mono-code font-medium text-[#1E2A38] whitespace-nowrap">
                           ₹{inv.total.toLocaleString('en-IN')}
                         </td>
                         <td className="px-5 py-3.5">

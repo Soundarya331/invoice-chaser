@@ -40,10 +40,10 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ clientToEdit, on
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-lg p-6 max-w-md w-full shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-lg p-4 sm:p-6 max-w-md w-[95vw] sm:w-full shadow-2xl my-auto">
         <div className="flex justify-between items-center mb-4 border-b border-[#DAD4C4] pb-3">
-          <h2 className="font-serif-brand text-xl font-semibold text-[#1E2A38]">
+          <h2 className="font-serif-brand text-lg sm:text-xl font-semibold text-[#1E2A38]">
             {clientToEdit ? `Edit Client: ${clientToEdit.name}` : 'Add New Client'}
           </h2>
           <button onClick={onClose} className="text-[#5B6672] hover:text-[#1E2A38] text-lg font-bold cursor-pointer">
@@ -66,7 +66,7 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ clientToEdit, on
               placeholder="e.g. Meridian Design Co."
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+              className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] text-xs sm:text-sm"
             />
           </div>
 
@@ -78,11 +78,11 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ clientToEdit, on
               placeholder="accounts@meridian.co"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+              className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] text-xs sm:text-sm"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Company Name</label>
               <input
