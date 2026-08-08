@@ -100,9 +100,15 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             status='sent' if email_res.get('success') else 'failed'
         )
 
+        is_simulated = email_res.get('simulated', False)
+        default_msg = f"Simulated mode (Add BREVO_API_KEY on Render for real delivery)" if is_simulated else f"Reminder email sent to {invoice.client.email}!"
+        msg = email_res.get('message') or default_msg
+        if is_simulated and not msg.startswith("Simulated"):
+            msg = f"Simulated: {msg}"
+
         return Response({
-            'message': email_res.get('message', f"Reminder processed for {invoice.client.email}"),
-            'simulated': email_res.get('simulated', False),
+            'message': msg,
+            'simulated': is_simulated,
             'reminder_id': reminder.id,
             'status': reminder.status
         }, status=status.HTTP_200_OK if email_res.get('success') else status.HTTP_500_INTERNAL_SERVER_ERROR)
