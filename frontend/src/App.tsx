@@ -279,7 +279,7 @@ export function App() {
             <div className="font-mono-code text-2xl font-semibold text-[#1E2A38] tracking-tight">
               {stats.reminders_sent.count}
             </div>
-            <div className="text-xs text-[#5B6672] mt-1.5">auto-sent this month</div>
+            <div className="text-xs text-[#5B6672] mt-1.5">sent this month</div>
           </div>
         </div>
 
