@@ -139,8 +139,25 @@
   <div class="form-row">
     {{ form.password.errors }}
     {{ form.password.label_tag }} {{ form.password }}
+    <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px;">
+      <input type="checkbox" id="toggleAdminPassword" onclick="togglePasswordVisibility()" style="width: auto !important; margin: 0 !important; cursor: pointer;">
+      <label for="toggleAdminPassword" style="display: inline !important; font-size: 12px !important; text-transform: none !important; color: var(--body-quiet-color, #5B6672) !important; font-weight: normal !important; cursor: pointer; user-select: none;">Show Password</label>
+    </div>
     <input type="hidden" name="next" value="{{ next }}" />
   </div>
+
+  <script>
+    function togglePasswordVisibility() {
+      var passInput = document.getElementById("id_password");
+      if (passInput) {
+        if (passInput.type === "password") {
+          passInput.type = "text";
+        } else {
+          passInput.type = "password";
+        }
+      }
+    }
+  </script>
   {% url 'admin_password_reset' as password_reset_url %}
   {% if password_reset_url %}
   <div class="password-reset-link" style="text-align: right; margin-top: -10px; margin-bottom: 15px;">

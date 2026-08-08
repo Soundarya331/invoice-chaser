@@ -69,6 +69,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
     }
   };
 
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-lg p-8 max-w-md w-full shadow-2xl">
@@ -136,12 +138,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess }) => {
           <div>
             <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Password</label>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] focus:outline-none focus:border-[#1E2A38]"
             />
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="showAuthPassword"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                className="rounded accent-[#1E2A38] cursor-pointer"
+              />
+              <label htmlFor="showAuthPassword" className="text-xs text-[#5B6672] cursor-pointer select-none">
+                Show Password
+              </label>
+            </div>
           </div>
 
           <button
