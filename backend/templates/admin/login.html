@@ -1,0 +1,154 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block usertools %}{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  html, body {
+    background-color: #F6F4EF !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100vh !important;
+  }
+  #container {
+    background: #FFFEFB !important;
+    border: 1px solid #DAD4C4 !important;
+    border-radius: 8px !important;
+    padding: 36px 32px !important;
+    max-width: 400px !important;
+    margin: 80px auto !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+    box-sizing: border-box !important;
+  }
+  #header {
+    background: transparent !important;
+    padding: 0 0 20px 0 !important;
+    border-bottom: 1px solid #DAD4C4 !important;
+    margin-bottom: 24px !important;
+    text-align: center !important;
+  }
+  #header h1 {
+    font-family: Georgia, serif !important;
+    font-size: 26px !important;
+    margin: 0 !important;
+    color: #1E2A38 !important;
+  }
+  #header h1 a {
+    color: #1E2A38 !important;
+    text-decoration: none !important;
+  }
+  #header h1 span {
+    color: #C9A96A !important;
+  }
+  .form-row {
+    margin-bottom: 18px !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+  }
+  .form-row label {
+    display: block !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    color: #5B6672 !important;
+    margin-bottom: 6px !important;
+    font-weight: 600 !important;
+  }
+  .form-row input[type="text"], .form-row input[type="password"] {
+    width: 100% !important;
+    padding: 10px 12px !important;
+    background: #F6F4EF !important;
+    border: 1px solid #DAD4C4 !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    color: #1E2A38 !important;
+    box-sizing: border-box !important;
+  }
+  .form-row input:focus {
+    outline: none !important;
+    border-color: #1E2A38 !important;
+  }
+  .submit-row {
+    margin-top: 24px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+  }
+  .submit-row input[type="submit"] {
+    width: 100% !important;
+    padding: 12px !important;
+    background: #1E2A38 !important;
+    color: #F1E9D6 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease !important;
+  }
+  .submit-row input[type="submit"]:hover {
+    background: #14202D !important;
+  }
+  .errornote {
+    background: #F5E5DF !important;
+    color: #B5533C !important;
+    border: 1px solid rgba(181, 83, 60, 0.2) !important;
+    padding: 10px 14px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    margin-bottom: 20px !important;
+    font-weight: 500 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if form.errors and not form.non_field_errors %}
+<p class="errornote">
+{% if form.errors.items|length == 1 %}{% translate "Please correct the error below." %}{% else %}{% translate "Please correct the errors below." %}{% endif %}
+</p>
+{% endif %}
+
+{% if form.non_field_errors %}
+{% for error in form.non_field_errors %}
+<p class="errornote">
+    {{ error }}
+</p>
+{% endfor %}
+{% endif %}
+
+<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+  <div class="form-row">
+    {{ form.username.errors }}
+    {{ form.username.label_tag }} {{ form.username }}
+  </div>
+  <div class="form-row">
+    {{ form.password.errors }}
+    {{ form.password.label_tag }} {{ form.password }}
+    <input type="hidden" name="next" value="{{ next }}" />
+  </div>
+  {% url 'admin_password_reset' as password_reset_url %}
+  {% if password_reset_url %}
+  <div class="password-reset-link" style="text-align: right; margin-top: -10px; margin-bottom: 15px;">
+    <a href="{{ password_reset_url }}" style="font-size: 12px; color: #5B6672;">{% translate 'Forgotten your password or username?' %}</a>
+  </div>
+  {% endif %}
+  <div class="submit-row">
+    <input type="submit" value="{% translate 'Log in' %}" />
+  </div>
+</form>
+{% endblock %}
