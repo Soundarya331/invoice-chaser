@@ -78,7 +78,8 @@ def send_brevo_reminder_email(invoice, tone='friendly', sender_email=None, sende
     user_brevo_key = user_profile.get_brevo_api_key() if user_profile else None
     brevo_key = api_key or user_brevo_key or getattr(settings, 'BREVO_API_KEY', '')
     
-    from_email = sender_email or (user.email if user and user.email else None) or smtp_user or getattr(settings, 'DEFAULT_FROM_EMAIL', 'invoices@invoicechaser.com')
+    # Use configured verified Brevo sender email (soundaryap182@gmail.com)
+    from_email = sender_email or getattr(settings, 'DEFAULT_FROM_EMAIL', '') or smtp_user or 'soundaryap182@gmail.com'
 
     # 1. Check if SMTP configuration is present (Brevo SMTP Key)
     if smtp_password and smtp_user:
