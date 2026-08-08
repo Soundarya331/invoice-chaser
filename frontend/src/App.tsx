@@ -217,7 +217,7 @@ export function App() {
           <div className="flex gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowNewClientModal(true)}
-              className="flex-1 sm:flex-none bg-transparent border border-[#DAD4C4] hover:border-[#1E2A38] text-[#1E2A38] px-4 py-2.5 text-[13.5px] font-medium rounded transition flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-none bg-[#FFFEFB] border border-[#DAD4C4] hover:border-[#1E2A38] text-[#1E2A38] px-4 py-2.5 text-[13.5px] font-semibold rounded transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
               <UserPlus className="w-4 h-4 text-[#8A6D3B]" /> + Add Client
             </button>
