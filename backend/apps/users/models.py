@@ -29,7 +29,26 @@ class UserProfile(models.Model):
     )
     default_reminder_interval = models.IntegerField(default=7, help_text="Interval in days between reminders")
     brevo_api_key_encrypted = models.TextField(blank=True, null=True, help_text="Fernet-encrypted Brevo API Key")
+    razorpay_key_id = models.CharField(max_length=255, blank=True, null=True, help_text="Razorpay Key ID")
+    razorpay_key_secret_encrypted = models.TextField(blank=True, null=True, help_text="Fernet-encrypted Razorpay Secret")
+    upi_id = models.CharField(max_length=255, blank=True, null=True, help_text="Default UPI ID for payment QR codes")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_razorpay_key_secret(self):
+        if not self.razorpay_key_secret_encrypted:
+            return None
+        try:
+            cipher = _get_fernet_cipher()
+            return cipher.decrypt(self.razorpay_key_secret_encrypted.encode('utf-8')).decode('utf-8')
+        except Exception:
+            return None
+
+    def set_razorpay_key_secret(self, raw_secret):
+        if not raw_secret:
+            self.razorpay_key_secret_encrypted = None
+        else:
+            cipher = _get_fernet_cipher()
+            self.razorpay_key_secret_encrypted = cipher.encrypt(raw_secret.strip().encode('utf-8')).decode('utf-8')
 
     def get_brevo_api_key(self):
         if not self.brevo_api_key_encrypted:

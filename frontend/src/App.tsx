@@ -4,9 +4,11 @@ import { Sidebar } from './components/Sidebar';
 import { AuthModal } from './components/AuthModal';
 import { NewInvoiceModal } from './components/NewInvoiceModal';
 import { NewClientModal } from './components/NewClientModal';
+import { BulkWhatsAppModal } from './components/BulkWhatsAppModal';
+import { InvoiceDetailModal } from './components/InvoiceDetailModal';
 import type { Invoice, Client, DashboardStats, UserProfile, ReminderLog } from './types';
 
-import { Download, Mail, CheckCircle2, Search, Plus, UserPlus, RefreshCw, Pencil } from 'lucide-react';
+import { Download, Mail, CheckCircle2, Search, Plus, UserPlus, RefreshCw, Pencil, MessageSquare, CreditCard } from 'lucide-react';
 
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -29,10 +31,15 @@ export function App() {
 
   const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
+  const [showBulkWhatsAppModal, setShowBulkWhatsAppModal] = useState(false);
+  const [selectedInvoiceDetail, setSelectedInvoiceDetail] = useState<Invoice | null>(null);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   const [brevoKeyInput, setBrevoKeyInput] = useState('');
+  const [upiIdInput, setUpiIdInput] = useState('');
+  const [razorpayKeyIdInput, setRazorpayKeyIdInput] = useState('');
+  const [razorpaySecretInput, setRazorpaySecretInput] = useState('');
   const [reminderToneInput, setReminderToneInput] = useState<'friendly' | 'firm' | 'final'>('friendly');
   const [reminderIntervalInput, setReminderIntervalInput] = useState(7);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -45,6 +52,8 @@ export function App() {
     if (user) {
       setReminderToneInput(user.default_reminder_tone || 'friendly');
       setReminderIntervalInput(user.default_reminder_interval || 7);
+      setUpiIdInput(user.upi_id || '');
+      setRazorpayKeyIdInput(user.razorpay_key_id || '');
     }
   }, [user]);
 
@@ -55,13 +64,19 @@ export function App() {
       const payload: any = {
         default_reminder_tone: reminderToneInput,
         default_reminder_interval: reminderIntervalInput,
+        upi_id: upiIdInput.trim(),
+        razorpay_key_id: razorpayKeyIdInput.trim(),
       };
       if (brevoKeyInput.trim()) {
         payload.brevo_api_key = brevoKeyInput.trim();
       }
+      if (razorpaySecretInput.trim()) {
+        payload.razorpay_key_secret = razorpaySecretInput.trim();
+      }
       const res = await api.put('/auth/profile/', payload);
       setUser(res.data);
       setBrevoKeyInput('');
+      setRazorpaySecretInput('');
       showToast('Settings updated successfully! ⚙️');
     } catch (err: any) {
       showToast(`⚠️ ${err.response?.data?.message || 'Failed to save settings'}`);
@@ -240,7 +255,14 @@ export function App() {
               {currentDateStr} — {stats.overdue.count} invoices need attention
             </p>
           </div>
-          <div className="flex gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => setShowBulkWhatsAppModal(true)}
+              className="flex-1 sm:flex-none bg-[#25D366] hover:bg-[#1EBE5D] text-white px-3.5 py-2.5 text-[13.5px] font-semibold rounded transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              title="Send Bulk WhatsApp Reminders"
+            >
+              <MessageSquare className="w-4 h-4" /> Bulk WhatsApp
+            </button>
             <button
               onClick={() => setShowNewClientModal(true)}
               className="flex-1 sm:flex-none bg-[#FFFEFB] border border-[#DAD4C4] hover:border-[#1E2A38] text-[#1E2A38] px-4 py-2.5 text-[13.5px] font-semibold rounded transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
@@ -388,6 +410,40 @@ export function App() {
                   value={user.email}
                   className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#DAD4C4]">
+                <div>
+                  <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">
+                    Default UPI ID ($0 Fee Payment QR)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. soundaryap182@okicici"
+                    value={upiIdInput}
+                    onChange={(e) => setUpiIdInput(e.target.value)}
+                    className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] font-mono-code text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">
+                    Razorpay Key ID (Card / UPI Gateway)
+                  </label>
+                  <p className="text-[10px] text-[#5B6672] mb-1">
+                    Status: {user.razorpay_key_id_masked ? (
+                      <span className="text-[#2F6F4F] font-mono-code font-semibold">{user.razorpay_key_id_masked}</span>
+                    ) : (
+                      <span className="text-[#8A6D3B] font-mono-code">Default Shared Razorpay Key</span>
+                    )}
+                  </p>
+                  <input
+                    type="text"
+                    placeholder="rzp_test_..."
+                    value={razorpayKeyIdInput}
+                    onChange={(e) => setRazorpayKeyIdInput(e.target.value)}
+                    className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] font-mono-code text-xs"
+                  />
+                </div>
               </div>
 
               <div className="pt-2 border-t border-[#DAD4C4]">
@@ -613,6 +669,15 @@ export function App() {
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-3 text-xs">
+                            {/* View / Pay Invoice Modal */}
+                            <button
+                              onClick={() => setSelectedInvoiceDetail(inv)}
+                              className="text-[#1E2A38] bg-[#F6F4EF] hover:bg-[#EBE7DF] border border-[#DAD4C4] px-2.5 py-1 rounded flex items-center gap-1 font-semibold cursor-pointer shadow-xs"
+                              title="View & Pay Invoice"
+                            >
+                              <CreditCard className="w-3.5 h-3.5 text-[#C9A96A]" /> Pay / View
+                            </button>
+
                             {/* Edit Invoice */}
                             <button
                               onClick={() => setEditingInvoice(inv)}
@@ -700,6 +765,25 @@ export function App() {
           clientToEdit={editingClient}
           onClose={() => setEditingClient(null)}
           onSuccess={fetchDashboardData}
+        />
+      )}
+
+      {showBulkWhatsAppModal && (
+        <BulkWhatsAppModal
+          invoices={invoices}
+          onClose={() => setShowBulkWhatsAppModal(false)}
+        />
+      )}
+
+      {selectedInvoiceDetail && user && (
+        <InvoiceDetailModal
+          invoice={selectedInvoiceDetail}
+          user={user}
+          onClose={() => setSelectedInvoiceDetail(null)}
+          onStatusChange={() => {
+            fetchDashboardData();
+            setSelectedInvoiceDetail(null);
+          }}
         />
       )}
     </div>

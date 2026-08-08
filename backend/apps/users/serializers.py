@@ -51,17 +51,22 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     business_name = serializers.CharField(source='profile.business_name', required=False, allow_blank=True)
     phone = serializers.CharField(source='profile.phone', required=False, allow_blank=True)
+    upi_id = serializers.CharField(source='profile.upi_id', required=False, allow_blank=True)
+    razorpay_key_id = serializers.CharField(source='profile.razorpay_key_id', required=False, allow_blank=True)
+    razorpay_key_secret = serializers.CharField(write_only=True, required=False, allow_blank=True)
     default_reminder_tone = serializers.CharField(source='profile.default_reminder_tone', required=False)
     default_reminder_interval = serializers.IntegerField(source='profile.default_reminder_interval', required=False)
     brevo_api_key = serializers.CharField(write_only=True, required=False, allow_blank=True)
     brevo_api_key_masked = serializers.SerializerMethodField()
+    razorpay_key_id_masked = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 
-            'business_name', 'phone', 'default_reminder_tone', 
-            'default_reminder_interval', 'brevo_api_key', 'brevo_api_key_masked',
+            'business_name', 'phone', 'upi_id', 'razorpay_key_id', 'razorpay_key_secret',
+            'default_reminder_tone', 'default_reminder_interval', 
+            'brevo_api_key', 'brevo_api_key_masked', 'razorpay_key_id_masked',
             'is_superuser', 'is_staff'
         ]
 
@@ -72,14 +77,23 @@ class UserSerializer(serializers.ModelSerializer):
         raw_key = profile.get_brevo_api_key()
         if not raw_key:
             return None
-        # Mask key safely: show prefix and last 4 chars
         if len(raw_key) > 8:
             return f"{raw_key[:7]}-••••••••{raw_key[-4:]}"
         return "••••••••"
 
+    def get_razorpay_key_id_masked(self, obj):
+        profile = getattr(obj, 'profile', None)
+        if not profile or not profile.razorpay_key_id:
+            return None
+        key = profile.razorpay_key_id
+        if len(key) > 8:
+            return f"{key[:8]}••••••••{key[-4:]}"
+        return f"{key[:4]}••••"
+
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
         brevo_key = validated_data.pop('brevo_api_key', None)
+        razorpay_secret = validated_data.pop('razorpay_key_secret', None)
 
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
@@ -90,6 +104,10 @@ class UserSerializer(serializers.ModelSerializer):
             profile.business_name = profile_data['business_name']
         if 'phone' in profile_data:
             profile.phone = profile_data['phone']
+        if 'upi_id' in profile_data:
+            profile.upi_id = profile_data['upi_id']
+        if 'razorpay_key_id' in profile_data:
+            profile.razorpay_key_id = profile_data['razorpay_key_id']
         if 'default_reminder_tone' in profile_data:
             profile.default_reminder_tone = profile_data['default_reminder_tone']
         if 'default_reminder_interval' in profile_data:
@@ -97,6 +115,8 @@ class UserSerializer(serializers.ModelSerializer):
 
         if brevo_key is not None:
             profile.set_brevo_api_key(brevo_key)
+        if razorpay_secret is not None:
+            profile.set_razorpay_key_secret(razorpay_secret)
 
         profile.save()
         return instance

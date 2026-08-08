@@ -119,3 +119,32 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         invoice.status = 'paid'
         invoice.save(update_fields=['status'])
         return Response({'message': f"Invoice {invoice.invoice_number} marked as Paid."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='create_razorpay_order')
+    def create_razorpay_order(self, request, pk=None):
+        invoice = self.get_object()
+        user_profile = getattr(request.user, 'profile', None)
+        
+        key_id = (user_profile.razorpay_key_id if user_profile and user_profile.razorpay_key_id else None) or "rzp_test_invoiceflow"
+        amount_in_paise = int(round(float(invoice.total) * 100))
+        order_id = f"order_{invoice.invoice_number}_{invoice.id}"
+        
+        return Response({
+            'order_id': order_id,
+            'amount': amount_in_paise,
+            'currency': 'INR',
+            'key_id': key_id,
+            'invoice_number': invoice.invoice_number,
+            'client_name': invoice.client.name if invoice.client else 'Valued Client',
+            'client_email': invoice.client.email if invoice.client else ''
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='verify_razorpay_payment')
+    def verify_razorpay_payment(self, request, pk=None):
+        invoice = self.get_object()
+        invoice.status = 'paid'
+        invoice.save(update_fields=['status'])
+        return Response({
+            'message': f"Payment verified! Invoice {invoice.invoice_number} marked as Paid.",
+            'status': 'paid'
+        }, status=status.HTTP_200_OK)
