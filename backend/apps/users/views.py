@@ -100,3 +100,56 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
 
+
+class AdminResetPasswordView(APIView):
+    """
+    Protected Superadmin Endpoint: POST /api/v1/auth/admin/reset-user-password/
+    Allows only superadmins (is_superuser=True) to update any user's password using their email address.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        # 1. Verify logged-in user is a superadmin
+        if not request.user.is_superuser:
+            return Response(
+                {'error': 'Permission denied. Only superadmins can reset user passwords.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        email = request.data.get('email')
+        new_password = request.data.get('new_password')
+
+        # 2. Validate input parameters
+        if not email or not new_password:
+            return Response(
+                {'error': 'Both target email and new_password parameters are required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(str(new_password)) < 6:
+            return Response(
+                {'error': 'New password must be at least 6 characters long.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 3. Check if user exists in the users table
+        target_user = User.objects.filter(email__iexact=email.strip()).first()
+        if not target_user:
+            return Response(
+                {'error': f'User with email "{email}" does not exist in the users table.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # 4. Update password securely
+        target_user.set_password(new_password)
+        target_user.save()
+
+        return Response({
+            'message': f'Password for user "{target_user.email}" updated successfully.',
+            'user': {
+                'id': target_user.id,
+                'username': target_user.username,
+                'email': target_user.email
+            }
+        }, status=status.HTTP_200_OK)
+
