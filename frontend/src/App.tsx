@@ -30,6 +30,40 @@ export function App() {
   const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
 
+  const [brevoKeyInput, setBrevoKeyInput] = useState('');
+  const [reminderToneInput, setReminderToneInput] = useState<'friendly' | 'firm' | 'final'>('friendly');
+  const [reminderIntervalInput, setReminderIntervalInput] = useState(7);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setReminderToneInput(user.default_reminder_tone || 'friendly');
+      setReminderIntervalInput(user.default_reminder_interval || 7);
+    }
+  }, [user]);
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+      const payload: any = {
+        default_reminder_tone: reminderToneInput,
+        default_reminder_interval: reminderIntervalInput,
+      };
+      if (brevoKeyInput.trim()) {
+        payload.brevo_api_key = brevoKeyInput.trim();
+      }
+      const res = await api.put('/auth/profile/', payload);
+      setUser(res.data);
+      setBrevoKeyInput('');
+      showToast('Settings updated successfully! ⚙️');
+    } catch (err: any) {
+      showToast(`⚠️ ${err.response?.data?.message || 'Failed to save settings'}`);
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   // Initial authentication check & fetch
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -114,11 +148,13 @@ export function App() {
   const handleSendReminder = async (invoice: Invoice) => {
     try {
       showToast(`Sending reminder for ${invoice.invoice_number}...`);
-      await api.post(`/invoices/${invoice.id}/send_reminder/`, { tone: 'friendly' });
-      showToast(`Reminder email sent to ${invoice.client_detail?.email || 'client'}! ✉️`);
+      const res = await api.post(`/invoices/${invoice.id}/send_reminder/`, { tone: 'friendly' });
+      const msg = res.data.message || `Reminder email sent to ${invoice.client_detail?.email || 'client'}! ✉️`;
+      showToast(msg);
       fetchDashboardData();
-    } catch {
-      showToast(`Failed to send reminder for ${invoice.invoice_number}`);
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || err.response?.data?.error || `Failed to send reminder for ${invoice.invoice_number}`;
+      showToast(`⚠️ ${errMsg}`);
     }
   };
 
@@ -297,9 +333,9 @@ export function App() {
             <h2 className="font-serif-brand text-lg font-semibold mb-4 text-[#1E2A38]">
               SaaS Account Settings
             </h2>
-            <div className="space-y-4 text-sm">
+            <form onSubmit={handleSaveSettings} className="space-y-4 text-sm">
               <div>
-                <label className="block text-xs uppercase text-[#5B6672] mb-1">Subscriber Business Name</label>
+                <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Subscriber Business Name</label>
                 <input
                   type="text"
                   readOnly
@@ -308,7 +344,7 @@ export function App() {
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase text-[#5B6672] mb-1">Email</label>
+                <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Email Address</label>
                 <input
                   type="text"
                   readOnly
@@ -316,16 +352,63 @@ export function App() {
                   className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
                 />
               </div>
-              <div>
-                <label className="block text-xs uppercase text-[#5B6672] mb-1">Central Email Gateway</label>
+
+              <div className="pt-2 border-t border-[#DAD4C4]">
+                <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">
+                  Brevo API Key (Encrypted Storage)
+                </label>
+                <p className="text-[11px] text-[#5B6672] mb-2">
+                  Status: {user.brevo_api_key_masked ? (
+                    <span className="text-[#2F6F4F] font-mono-code font-semibold">Configured ({user.brevo_api_key_masked})</span>
+                  ) : (
+                    <span className="text-[#8A6D3B] font-mono-code">Using Shared Platform Brevo Credentials</span>
+                  )}
+                </p>
                 <input
-                  type="text"
-                  readOnly
-                  value="Brevo Transactional API (Configured via .env)"
+                  type="password"
+                  placeholder={user.brevo_api_key_masked ? "•••••••••••••••• (Leave blank to keep existing key)" : "Paste Brevo API Key (xkeysib-...)"}
+                  value={brevoKeyInput}
+                  onChange={(e) => setBrevoKeyInput(e.target.value)}
                   className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] font-mono-code text-xs"
                 />
               </div>
-            </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Default Reminder Tone</label>
+                  <select
+                    value={reminderToneInput}
+                    onChange={(e) => setReminderToneInput(e.target.value as any)}
+                    className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+                  >
+                    <option value="friendly">Friendly</option>
+                    <option value="firm">Firm</option>
+                    <option value="final">Final Notice</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Reminder Interval (Days)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={reminderIntervalInput}
+                    onChange={(e) => setReminderIntervalInput(parseInt(e.target.value) || 7)}
+                    className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3">
+                <button
+                  type="submit"
+                  disabled={savingSettings}
+                  className="bg-[#1E2A38] hover:bg-[#14202D] text-[#F1E9D6] px-5 py-2.5 rounded text-xs font-medium cursor-pointer disabled:opacity-50"
+                >
+                  {savingSettings ? 'Saving Settings...' : 'Save Settings →'}
+                </button>
+              </div>
+            </form>
           </div>
         ) : (
           /* Main Ledger Table (Dashboard & Invoices View) */

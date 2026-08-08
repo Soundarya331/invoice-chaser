@@ -5,6 +5,9 @@ export interface UserProfile {
   last_name: string;
   business_name: string;
   phone?: string;
+  default_reminder_tone?: 'friendly' | 'firm' | 'final';
+  default_reminder_interval?: number;
+  brevo_api_key_masked?: string;
 }
 
 export interface Client {
