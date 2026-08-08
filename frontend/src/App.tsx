@@ -6,7 +6,7 @@ import { NewInvoiceModal } from './components/NewInvoiceModal';
 import { NewClientModal } from './components/NewClientModal';
 import type { Invoice, Client, DashboardStats, UserProfile, ReminderLog } from './types';
 
-import { Download, Mail, CheckCircle2, Search, Plus, UserPlus, RefreshCw } from 'lucide-react';
+import { Download, Mail, CheckCircle2, Search, Plus, UserPlus, RefreshCw, Pencil } from 'lucide-react';
 
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -29,6 +29,8 @@ export function App() {
 
   const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   const [brevoKeyInput, setBrevoKeyInput] = useState('');
   const [reminderToneInput, setReminderToneInput] = useState<'friendly' | 'firm' | 'final'>('friendly');
@@ -290,13 +292,22 @@ export function App() {
             <h2 className="font-serif-brand text-lg font-semibold mb-4 text-[#1E2A38]">
               Client Directory ({clients.length})
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {clients.map((c) => (
-                <div key={c.id} className="p-4 border border-[#DAD4C4] rounded bg-[#F6F4EF]/50">
-                  <div className="font-semibold text-sm text-[#1E2A38]">{c.name}</div>
-                  <div className="text-xs text-[#5B6672]">{c.email}</div>
-                  <div className="text-xs text-[#8A6D3B] mt-1">{c.company || 'Individual Client'}</div>
-                  {c.phone && <div className="text-xs font-mono-code text-[#5B6672] mt-1">📞 {c.phone}</div>}
+                <div key={c.id} className="p-4 border border-[#DAD4C4] rounded bg-[#F6F4EF]/50 flex justify-between items-start">
+                  <div>
+                    <div className="font-semibold text-sm text-[#1E2A38]">{c.name}</div>
+                    <div className="text-xs text-[#5B6672]">{c.email}</div>
+                    <div className="text-xs text-[#8A6D3B] mt-1">{c.company || 'Individual Client'}</div>
+                    {c.phone && <div className="text-xs font-mono-code text-[#5B6672] mt-1">📞 {c.phone}</div>}
+                  </div>
+                  <button
+                    onClick={() => setEditingClient(c)}
+                    className="text-xs text-[#1E2A38] hover:bg-[#DAD4C4]/40 border border-[#DAD4C4] px-2.5 py-1 rounded flex items-center gap-1 cursor-pointer font-medium"
+                    title="Edit Client Details"
+                  >
+                    <Pencil className="w-3 h-3 text-[#5B6672]" /> Edit
+                  </button>
                 </div>
               ))}
             </div>
@@ -525,6 +536,15 @@ export function App() {
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-3 text-xs">
+                            {/* Edit Invoice */}
+                            <button
+                              onClick={() => setEditingInvoice(inv)}
+                              className="text-[#1E2A38] hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                              title="Edit Invoice Details"
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-[#5B6672]" /> Edit
+                            </button>
+
                             {/* 1-Click PDF Download */}
                             <button
                               onClick={() => handleDownloadPDF(inv)}
@@ -578,9 +598,26 @@ export function App() {
         />
       )}
 
+      {editingInvoice && (
+        <NewInvoiceModal
+          clients={clients}
+          invoiceToEdit={editingInvoice}
+          onClose={() => setEditingInvoice(null)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
+
       {showNewClientModal && (
         <NewClientModal
           onClose={() => setShowNewClientModal(false)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
+
+      {editingClient && (
+        <NewClientModal
+          clientToEdit={editingClient}
+          onClose={() => setEditingClient(null)}
           onSuccess={fetchDashboardData}
         />
       )}

@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
+import type { Client } from '../types';
 import api from '../api';
 import { parseApiError } from '../utils';
 
 interface NewClientModalProps {
+  clientToEdit?: Client | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export const NewClientModal: React.FC<NewClientModalProps> = ({ onClose, onSuccess }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [phone, setPhone] = useState('');
-  const [notes, setNotes] = useState('');
+export const NewClientModal: React.FC<NewClientModalProps> = ({ clientToEdit, onClose, onSuccess }) => {
+  const [name, setName] = useState(clientToEdit?.name || '');
+  const [email, setEmail] = useState(clientToEdit?.email || '');
+  const [company, setCompany] = useState(clientToEdit?.company || '');
+  const [phone, setPhone] = useState(clientToEdit?.phone || '');
+  const [notes, setNotes] = useState(clientToEdit?.notes || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,7 +24,12 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ onClose, onSucce
     setError('');
 
     try {
-      await api.post('/clients/', { name, email, company, phone, notes });
+      const payload = { name, email, company, phone, notes };
+      if (clientToEdit) {
+        await api.put(`/clients/${clientToEdit.id}/`, payload);
+      } else {
+        await api.post('/clients/', payload);
+      }
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -36,7 +43,9 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ onClose, onSucce
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-lg p-6 max-w-md w-full shadow-2xl">
         <div className="flex justify-between items-center mb-4 border-b border-[#DAD4C4] pb-3">
-          <h2 className="font-serif-brand text-xl font-semibold text-[#1E2A38]">Add New Client</h2>
+          <h2 className="font-serif-brand text-xl font-semibold text-[#1E2A38]">
+            {clientToEdit ? `Edit Client: ${clientToEdit.name}` : 'Add New Client'}
+          </h2>
           <button onClick={onClose} className="text-[#5B6672] hover:text-[#1E2A38] text-lg font-bold cursor-pointer">
             ✕
           </button>
@@ -120,7 +129,7 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ onClose, onSucce
               disabled={loading}
               className="px-5 py-2 bg-[#1E2A38] hover:bg-[#14202D] text-[#F1E9D6] rounded text-xs font-medium cursor-pointer"
             >
-              {loading ? 'Saving...' : 'Save Client →'}
+              {loading ? 'Saving...' : clientToEdit ? 'Update Client →' : 'Save Client →'}
             </button>
           </div>
         </form>

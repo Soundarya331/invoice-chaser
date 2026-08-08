@@ -1,28 +1,47 @@
 import React, { useState } from 'react';
-import type { Client } from '../types';
+import type { Client, Invoice } from '../types';
 import api from '../api';
 import { parseApiError } from '../utils';
 
 interface NewInvoiceModalProps {
   clients: Client[];
+  invoiceToEdit?: Invoice | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, onClose, onSuccess }) => {
-  const [clientId, setClientId] = useState<number>(clients[0]?.id || 1);
-  const [invoiceNumber, setInvoiceNumber] = useState(`INV-${Math.floor(1000 + Math.random() * 9000)}`);
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dueDate, setDueDate] = useState(
-    new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, invoiceToEdit, onClose, onSuccess }) => {
+  const [clientId, setClientId] = useState<number>(
+    invoiceToEdit ? (invoiceToEdit.client_id || invoiceToEdit.client || clients[0]?.id || 1) : (clients[0]?.id || 1)
   );
-  const [status, setStatus] = useState<'pending' | 'paid' | 'overdue'>('pending');
-  const [notes, setNotes] = useState('Payment due within 14 days of issue date.');
-  const [automateEnabled, setAutomateEnabled] = useState(true);
+  const [invoiceNumber, setInvoiceNumber] = useState(
+    invoiceToEdit ? invoiceToEdit.invoice_number : `INV-${Math.floor(1000 + Math.random() * 9000)}`
+  );
+  const [issueDate, setIssueDate] = useState(
+    invoiceToEdit ? invoiceToEdit.issue_date : new Date().toISOString().split('T')[0]
+  );
+  const [dueDate, setDueDate] = useState(
+    invoiceToEdit ? invoiceToEdit.due_date : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
+  const [status, setStatus] = useState<'pending' | 'paid' | 'overdue'>(
+    invoiceToEdit ? invoiceToEdit.status : 'pending'
+  );
+  const [notes, setNotes] = useState(
+    invoiceToEdit ? (invoiceToEdit.notes || '') : 'Payment due within 14 days of issue date.'
+  );
+  const [automateEnabled, setAutomateEnabled] = useState(
+    invoiceToEdit ? invoiceToEdit.automate_enabled : true
+  );
 
-  const [items, setItems] = useState<Array<{ description: string; quantity: number; unit_price: number }>>([
-    { description: 'Brand Identity & Web UI Design', quantity: 1, unit_price: 32000 },
-  ]);
+  const [items, setItems] = useState<Array<{ description: string; quantity: number; unit_price: number }>>(
+    invoiceToEdit && invoiceToEdit.items && invoiceToEdit.items.length > 0
+      ? invoiceToEdit.items.map((item) => ({
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: typeof item.unit_price === 'string' ? parseFloat(item.unit_price) : item.unit_price,
+        }))
+      : [{ description: 'Brand Identity & Web UI Design', quantity: 1, unit_price: 32000 }]
+  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,7 +72,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, onClo
     setError('');
 
     try {
-      await api.post('/invoices/', {
+      const payload = {
         invoice_number: invoiceNumber,
         client_id: clientId,
         issue_date: issueDate,
@@ -62,7 +81,13 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, onClo
         notes: notes,
         automate_enabled: automateEnabled,
         items: items,
-      });
+      };
+
+      if (invoiceToEdit) {
+        await api.put(`/invoices/${invoiceToEdit.id}/`, payload);
+      } else {
+        await api.post('/invoices/', payload);
+      }
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -76,7 +101,9 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, onClo
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-[#FFFEFB] border border-[#DAD4C4] rounded-lg p-6 max-w-2xl w-full my-8 shadow-2xl">
         <div className="flex justify-between items-center mb-4 border-b border-[#DAD4C4] pb-3">
-          <h2 className="font-serif-brand text-xl font-semibold text-[#1E2A38]">Create New Invoice</h2>
+          <h2 className="font-serif-brand text-xl font-semibold text-[#1E2A38]">
+            {invoiceToEdit ? `Edit Invoice #${invoiceToEdit.invoice_number}` : 'Create New Invoice'}
+          </h2>
           <button onClick={onClose} className="text-[#5B6672] hover:text-[#1E2A38] text-lg font-bold cursor-pointer">
             ✕
           </button>
@@ -138,7 +165,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, onClo
               />
             </div>
             <div>
-              <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Initial Status</label>
+              <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
@@ -241,7 +268,7 @@ export const NewInvoiceModal: React.FC<NewInvoiceModalProps> = ({ clients, onClo
               disabled={loading}
               className="px-5 py-2 bg-[#1E2A38] hover:bg-[#14202D] text-[#F1E9D6] rounded text-xs font-medium cursor-pointer"
             >
-              {loading ? 'Creating...' : 'Save & Issue Invoice →'}
+              {loading ? 'Saving...' : invoiceToEdit ? 'Update Invoice →' : 'Save & Issue Invoice →'}
             </button>
           </div>
         </form>
