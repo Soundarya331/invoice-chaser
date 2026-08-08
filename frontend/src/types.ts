@@ -8,6 +8,8 @@ export interface UserProfile {
   default_reminder_tone?: 'friendly' | 'firm' | 'final';
   default_reminder_interval?: number;
   brevo_api_key_masked?: string;
+  is_superuser?: boolean;
+  is_staff?: boolean;
 }
 
 export interface Client {

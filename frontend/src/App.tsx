@@ -37,6 +37,10 @@ export function App() {
   const [reminderIntervalInput, setReminderIntervalInput] = useState(7);
   const [savingSettings, setSavingSettings] = useState(false);
 
+  const [adminTargetEmail, setAdminTargetEmail] = useState('');
+  const [adminNewPassword, setAdminNewPassword] = useState('');
+  const [adminResetting, setAdminResetting] = useState(false);
+
   useEffect(() => {
     if (user) {
       setReminderToneInput(user.default_reminder_tone || 'friendly');
@@ -63,6 +67,28 @@ export function App() {
       showToast(`⚠️ ${err.response?.data?.message || 'Failed to save settings'}`);
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  const handleAdminResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminTargetEmail.trim() || !adminNewPassword.trim()) {
+      showToast('⚠️ Please provide both target user email and new password.');
+      return;
+    }
+    setAdminResetting(true);
+    try {
+      const res = await api.post('/auth/admin/reset-user-password/', {
+        email: adminTargetEmail.trim(),
+        new_password: adminNewPassword.trim(),
+      });
+      showToast(`✅ ${res.data.message}`);
+      setAdminTargetEmail('');
+      setAdminNewPassword('');
+    } catch (err: any) {
+      showToast(`⚠️ ${err.response?.data?.error || 'Failed to reset user password.'}`);
+    } finally {
+      setAdminResetting(false);
     }
   };
 
@@ -420,6 +446,57 @@ export function App() {
                 </button>
               </div>
             </form>
+
+            {/* Superadmin User Password Reset Panel */}
+            {user.is_superuser && (
+              <div className="mt-8 pt-6 border-t border-[#DAD4C4]">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-[#1E2A38] text-[#C9A96A] text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded font-mono-code">
+                    Superadmin Control
+                  </span>
+                  <h3 className="font-serif-brand text-base font-semibold text-[#1E2A38]">
+                    Reset Any Subscriber Password
+                  </h3>
+                </div>
+                <p className="text-xs text-[#5B6672] mb-4">
+                  Enter the email address of any registered subscriber to override and set a new password.
+                </p>
+
+                <form onSubmit={handleAdminResetPassword} className="space-y-3 text-sm">
+                  <div>
+                    <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">Target User Email</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. subscriber@example.com"
+                      value={adminTargetEmail}
+                      onChange={(e) => setAdminTargetEmail(e.target.value)}
+                      className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">New Password</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Enter new password (min 6 chars)"
+                      value={adminNewPassword}
+                      onChange={(e) => setAdminNewPassword(e.target.value)}
+                      className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38]"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={adminResetting}
+                    className="bg-[#C9A96A] hover:bg-[#B89758] text-[#1E2A38] px-5 py-2.5 rounded text-xs font-semibold cursor-pointer disabled:opacity-50 mt-1"
+                  >
+                    {adminResetting ? 'Updating Password...' : 'Reset User Password →'}
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         ) : (
           /* Main Ledger Table (Dashboard & Invoices View) */

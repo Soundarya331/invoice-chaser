@@ -61,7 +61,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'first_name', 'last_name', 
             'business_name', 'phone', 'default_reminder_tone', 
-            'default_reminder_interval', 'brevo_api_key', 'brevo_api_key_masked'
+            'default_reminder_interval', 'brevo_api_key', 'brevo_api_key_masked',
+            'is_superuser', 'is_staff'
         ]
 
     def get_brevo_api_key_masked(self, obj):
