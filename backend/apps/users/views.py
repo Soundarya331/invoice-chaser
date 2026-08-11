@@ -153,3 +153,71 @@ class AdminResetPasswordView(APIView):
             }
         }, status=status.HTTP_200_OK)
 
+
+class WhatsAppWebhookView(APIView):
+    """
+    Public Endpoint for Meta WhatsApp Cloud API Webhook.
+
+    GET  /api/v1/auth/whatsapp/webhook/  — Meta verification handshake
+    POST /api/v1/auth/whatsapp/webhook/  — Delivery status / inbound message events
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        """
+        Meta sends a GET request with hub.challenge when you first register
+        the webhook in the Meta Developers Dashboard. We echo back the
+        challenge to verify ownership.
+        """
+        from django.conf import settings
+        verify_token = request.GET.get('hub.verify_token', '')
+        challenge    = request.GET.get('hub.challenge', '')
+        mode         = request.GET.get('hub.mode', '')
+
+        expected_token = getattr(settings, 'WA_WEBHOOK_VERIFY_TOKEN', 'invoiceflow_webhook_secret')
+
+        if mode == 'subscribe' and verify_token == expected_token:
+            return Response(int(challenge), status=status.HTTP_200_OK)
+
+        return Response({'error': 'Verification token mismatch.'}, status=status.HTTP_403_FORBIDDEN)
+
+    def post(self, request):
+        """
+        Receives delivery status updates and inbound message notifications from Meta.
+        Logs them and updates Reminder.wa_status on delivery/read receipts.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        data = request.data
+
+        try:
+            for entry in data.get('entry', []):
+                for change in entry.get('changes', []):
+                    value = change.get('value', {})
+
+                    # Delivery / read status updates
+                    for stat in value.get('statuses', []):
+                        wa_message_id = stat.get('id')
+                        delivery_status = stat.get('status')  # sent/delivered/read/failed
+                        logger.info(
+                            "WhatsApp delivery update: wamid=%s status=%s",
+                            wa_message_id, delivery_status
+                        )
+                        if wa_message_id and delivery_status in ('delivered', 'read'):
+                            from apps.reminders.models import Reminder
+                            Reminder.objects.filter(wa_message_id=wa_message_id).update(
+                                wa_status='sent'
+                            )
+
+                    # Inbound messages (clients replying on WhatsApp)
+                    for msg in value.get('messages', []):
+                        from_phone = msg.get('from')
+                        text = msg.get('text', {}).get('body', '')
+                        logger.info(
+                            "Inbound WhatsApp from %s: %s", from_phone, text[:200]
+                        )
+        except Exception as exc:
+            logger.exception("Error processing WhatsApp webhook payload: %s", exc)
+
+        # Meta requires HTTP 200 to stop retries
+        return Response({'status': 'ok'}, status=status.HTTP_200_OK)

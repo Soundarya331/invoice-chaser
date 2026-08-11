@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from apps.clients.views import ClientViewSet
 from apps.invoices.views import InvoiceViewSet
 from apps.reminders.views import ReminderViewSet
-from apps.users.views import RegisterView, LoginView, ProfileView, UserListView, AdminResetPasswordView
+from apps.users.views import RegisterView, LoginView, ProfileView, UserListView, AdminResetPasswordView, WhatsAppWebhookView
 
 router = DefaultRouter()
 router.register(r'clients', ClientViewSet, basename='client')
@@ -21,5 +21,6 @@ urlpatterns = [
     path('api/v1/auth/profile/', ProfileView.as_view(), name='profile'),
     path('api/v1/auth/users/', UserListView.as_view(), name='user_list'),
     path('api/v1/auth/admin/reset-user-password/', AdminResetPasswordView.as_view(), name='admin_reset_user_password'),
+    path('api/v1/auth/whatsapp/webhook/', WhatsAppWebhookView.as_view(), name='whatsapp_webhook'),
     path('api/v1/', include(router.urls)),
 ]

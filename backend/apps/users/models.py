@@ -32,6 +32,21 @@ class UserProfile(models.Model):
     razorpay_key_id = models.CharField(max_length=255, blank=True, null=True, help_text="Razorpay Key ID")
     razorpay_key_secret_encrypted = models.TextField(blank=True, null=True, help_text="Fernet-encrypted Razorpay Secret")
     upi_id = models.CharField(max_length=255, blank=True, null=True, help_text="Default UPI ID for payment QR codes")
+
+    # ── WhatsApp Cloud API (Meta Business) ──────────────────────────────────
+    wa_phone_number_id = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text="Meta WhatsApp Phone Number ID (from Meta Developers Dashboard)"
+    )
+    wa_business_account_id = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text="Meta WhatsApp Business Account ID"
+    )
+    wa_access_token_encrypted = models.TextField(
+        blank=True, null=True,
+        help_text="Fernet-encrypted Permanent WhatsApp Cloud API Access Token"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def get_razorpay_key_secret(self):
@@ -65,6 +80,22 @@ class UserProfile(models.Model):
         else:
             cipher = _get_fernet_cipher()
             self.brevo_api_key_encrypted = cipher.encrypt(raw_key.strip().encode('utf-8')).decode('utf-8')
+
+    def get_wa_access_token(self):
+        if not self.wa_access_token_encrypted:
+            return None
+        try:
+            cipher = _get_fernet_cipher()
+            return cipher.decrypt(self.wa_access_token_encrypted.encode('utf-8')).decode('utf-8')
+        except Exception:
+            return None
+
+    def set_wa_access_token(self, raw_token):
+        if not raw_token:
+            self.wa_access_token_encrypted = None
+        else:
+            cipher = _get_fernet_cipher()
+            self.wa_access_token_encrypted = cipher.encrypt(raw_token.strip().encode('utf-8')).decode('utf-8')
 
     def __str__(self):
         return f"{self.user.email} ({self.business_name or self.user.username})"

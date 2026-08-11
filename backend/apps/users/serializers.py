@@ -60,13 +60,21 @@ class UserSerializer(serializers.ModelSerializer):
     brevo_api_key_masked = serializers.SerializerMethodField()
     razorpay_key_id_masked = serializers.SerializerMethodField()
 
+    # ── WhatsApp Cloud API fields ──────────────────────────────────────────
+    wa_phone_number_id = serializers.CharField(source='profile.wa_phone_number_id', required=False, allow_blank=True)
+    wa_business_account_id = serializers.CharField(source='profile.wa_business_account_id', required=False, allow_blank=True)
+    wa_access_token = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    wa_configured = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'first_name', 'last_name', 
+            'id', 'email', 'first_name', 'last_name',
             'business_name', 'phone', 'upi_id', 'razorpay_key_id', 'razorpay_key_secret',
-            'default_reminder_tone', 'default_reminder_interval', 
+            'default_reminder_tone', 'default_reminder_interval',
             'brevo_api_key', 'brevo_api_key_masked', 'razorpay_key_id_masked',
+            # WhatsApp
+            'wa_phone_number_id', 'wa_business_account_id', 'wa_access_token', 'wa_configured',
             'is_superuser', 'is_staff'
         ]
 
@@ -90,10 +98,18 @@ class UserSerializer(serializers.ModelSerializer):
             return f"{key[:8]}••••••••{key[-4:]}"
         return f"{key[:4]}••••"
 
+    def get_wa_configured(self, obj):
+        """Returns True if WhatsApp Cloud API is fully configured."""
+        profile = getattr(obj, 'profile', None)
+        if not profile:
+            return False
+        return bool(profile.wa_phone_number_id and profile.wa_access_token_encrypted)
+
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
         brevo_key = validated_data.pop('brevo_api_key', None)
         razorpay_secret = validated_data.pop('razorpay_key_secret', None)
+        wa_access_token = validated_data.pop('wa_access_token', None)
 
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
@@ -112,11 +128,18 @@ class UserSerializer(serializers.ModelSerializer):
             profile.default_reminder_tone = profile_data['default_reminder_tone']
         if 'default_reminder_interval' in profile_data:
             profile.default_reminder_interval = profile_data['default_reminder_interval']
+        # WhatsApp fields
+        if 'wa_phone_number_id' in profile_data:
+            profile.wa_phone_number_id = profile_data['wa_phone_number_id']
+        if 'wa_business_account_id' in profile_data:
+            profile.wa_business_account_id = profile_data['wa_business_account_id']
 
         if brevo_key is not None:
             profile.set_brevo_api_key(brevo_key)
         if razorpay_secret is not None:
             profile.set_razorpay_key_secret(razorpay_secret)
+        if wa_access_token is not None:
+            profile.set_wa_access_token(wa_access_token)
 
         profile.save()
         return instance
