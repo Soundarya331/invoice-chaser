@@ -40,6 +40,9 @@ export function App() {
   const [upiIdInput, setUpiIdInput] = useState('');
   const [razorpayKeyIdInput, setRazorpayKeyIdInput] = useState('');
   const [razorpaySecretInput, setRazorpaySecretInput] = useState('');
+  const [waPhoneNumberId, setWaPhoneNumberId] = useState('');
+  const [waBusinessAccountId, setWaBusinessAccountId] = useState('');
+  const [waAccessToken, setWaAccessToken] = useState('');
   const [reminderToneInput, setReminderToneInput] = useState<'friendly' | 'firm' | 'final'>('friendly');
   const [reminderIntervalInput, setReminderIntervalInput] = useState(7);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -54,6 +57,8 @@ export function App() {
       setReminderIntervalInput(user.default_reminder_interval || 7);
       setUpiIdInput(user.upi_id || '');
       setRazorpayKeyIdInput(user.razorpay_key_id || '');
+      setWaPhoneNumberId(user.wa_phone_number_id || '');
+      setWaBusinessAccountId(user.wa_business_account_id || '');
     }
   }, [user]);
 
@@ -66,6 +71,8 @@ export function App() {
         default_reminder_interval: reminderIntervalInput,
         upi_id: upiIdInput.trim(),
         razorpay_key_id: razorpayKeyIdInput.trim(),
+        wa_phone_number_id: waPhoneNumberId.trim(),
+        wa_business_account_id: waBusinessAccountId.trim(),
       };
       if (brevoKeyInput.trim()) {
         payload.brevo_api_key = brevoKeyInput.trim();
@@ -73,10 +80,14 @@ export function App() {
       if (razorpaySecretInput.trim()) {
         payload.razorpay_key_secret = razorpaySecretInput.trim();
       }
+      if (waAccessToken.trim()) {
+        payload.wa_access_token = waAccessToken.trim();
+      }
       const res = await api.put('/auth/profile/', payload);
       setUser(res.data);
       setBrevoKeyInput('');
       setRazorpaySecretInput('');
+      setWaAccessToken('');
       showToast('Settings updated successfully! ⚙️');
     } catch (err: any) {
       showToast(`⚠️ ${err.response?.data?.message || 'Failed to save settings'}`);
@@ -464,6 +475,61 @@ export function App() {
                   onChange={(e) => setBrevoKeyInput(e.target.value)}
                   className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] font-mono-code text-xs"
                 />
+              </div>
+
+              {/* Razorpay Secret */}
+              <div className="pt-2 border-t border-[#DAD4C4]">
+                <label className="block text-xs uppercase text-[#5B6672] mb-1 font-medium">
+                  Razorpay Key Secret (Encrypted — Required for Payment Verification)
+                </label>
+                <p className="text-[11px] text-[#5B6672] mb-2">
+                  Required alongside Key ID to verify card/UPI payments via HMAC signature. Leave blank to keep existing secret.
+                </p>
+                <input
+                  type="password"
+                  placeholder="rzp_test_... secret (Leave blank to keep existing)"
+                  value={razorpaySecretInput}
+                  onChange={(e) => setRazorpaySecretInput(e.target.value)}
+                  className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] font-mono-code text-xs"
+                />
+              </div>
+
+              {/* WhatsApp Cloud API */}
+              <div className="pt-2 border-t border-[#DAD4C4]">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#25D366] font-mono-code">WhatsApp Cloud API</span>
+                  {user.wa_configured
+                    ? <span className="text-[10px] bg-[#E4EEE7] text-[#2F6F4F] px-2 py-0.5 rounded font-semibold">● Connected</span>
+                    : <span className="text-[10px] bg-[#FDF4E3] text-[#B4872F] px-2 py-0.5 rounded font-semibold">○ Not configured</span>
+                  }
+                </div>
+                <p className="text-[11px] text-[#5B6672] mb-3">
+                  Connect your Meta Business WhatsApp Cloud API to send real reminder messages. Get credentials from{' '}
+                  <a href="https://developers.facebook.com/apps" target="_blank" rel="noreferrer" className="text-[#1E2A38] underline">Meta Developers Dashboard</a>.
+                </p>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="WhatsApp Phone Number ID (e.g. 123456789012345)"
+                    value={waPhoneNumberId}
+                    onChange={(e) => setWaPhoneNumberId(e.target.value)}
+                    className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] font-mono-code text-xs"
+                  />
+                  <input
+                    type="text"
+                    placeholder="WhatsApp Business Account ID (e.g. 987654321098765)"
+                    value={waBusinessAccountId}
+                    onChange={(e) => setWaBusinessAccountId(e.target.value)}
+                    className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] font-mono-code text-xs"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Permanent Access Token (EAAxx... — leave blank to keep existing)"
+                    value={waAccessToken}
+                    onChange={(e) => setWaAccessToken(e.target.value)}
+                    className="w-full bg-[#F6F4EF] border border-[#DAD4C4] rounded px-3 py-2 text-[#1E2A38] font-mono-code text-xs"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

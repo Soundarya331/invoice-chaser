@@ -11,6 +11,9 @@ export interface UserProfile {
   upi_id?: string;
   razorpay_key_id?: string;
   razorpay_key_id_masked?: string;
+  wa_phone_number_id?: string;
+  wa_business_account_id?: string;
+  wa_configured?: boolean;
   is_superuser?: boolean;
   is_staff?: boolean;
 }

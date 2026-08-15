@@ -157,6 +157,10 @@ SIMPLE_JWT = {
 # Brevo (Sendinblue) Email Settings
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
 
+# Razorpay Platform-Level Credentials (fallback when subscriber has no own keys)
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
+
 # SMTP Email Configuration (Brevo SMTP Relay)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp-relay.brevo.com')

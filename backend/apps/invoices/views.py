@@ -1,3 +1,7 @@
+import hmac
+import hashlib
+import razorpay
+from django.conf import settings
 from django.http import HttpResponse
 from django.db.models import Sum
 from rest_framework import viewsets, permissions, status
@@ -166,15 +170,47 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def create_razorpay_order(self, request, pk=None):
         invoice = self.get_object()
         user_profile = getattr(request.user, 'profile', None)
-        
-        key_id = (user_profile.razorpay_key_id if user_profile and user_profile.razorpay_key_id else None) or "rzp_test_invoiceflow"
+
+        # Resolve Key ID: subscriber's own key → platform env fallback
+        key_id = (
+            (user_profile.razorpay_key_id if user_profile and user_profile.razorpay_key_id else None)
+            or getattr(settings, 'RAZORPAY_KEY_ID', '')
+        )
+        # Resolve Key Secret: subscriber's decrypted secret → platform env fallback
+        key_secret = (
+            (user_profile.get_razorpay_key_secret() if user_profile else None)
+            or getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+        )
+
+        if not key_id or not key_secret:
+            return Response(
+                {'message': 'Razorpay is not configured. Please add your Razorpay Key ID & Secret in Settings.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         amount_in_paise = int(round(float(invoice.total) * 100))
-        order_id = f"order_{invoice.invoice_number}_{invoice.id}"
-        
+
+        try:
+            client = razorpay.Client(auth=(key_id, key_secret))
+            order = client.order.create({
+                'amount': amount_in_paise,
+                'currency': 'INR',
+                'receipt': invoice.invoice_number,
+                'notes': {
+                    'invoice_id': str(invoice.id),
+                    'invoice_number': invoice.invoice_number,
+                }
+            })
+        except Exception as exc:
+            return Response(
+                {'message': f'Failed to create Razorpay order: {str(exc)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
         return Response({
-            'order_id': order_id,
-            'amount': amount_in_paise,
-            'currency': 'INR',
+            'order_id': order['id'],
+            'amount': order['amount'],
+            'currency': order['currency'],
             'key_id': key_id,
             'invoice_number': invoice.invoice_number,
             'client_name': invoice.client.name if invoice.client else 'Valued Client',
@@ -184,11 +220,37 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='verify_razorpay_payment')
     def verify_razorpay_payment(self, request, pk=None):
         invoice = self.get_object()
+        user_profile = getattr(invoice.user, 'profile', None)
+
+        # ── Cryptographic HMAC Signature Verification ────────────────────────
+        razorpay_order_id = request.data.get('razorpay_order_id', '')
+        razorpay_payment_id = request.data.get('razorpay_payment_id', '')
+        razorpay_signature = request.data.get('razorpay_signature', '')
+
+        key_secret = (
+            (user_profile.get_razorpay_key_secret() if user_profile else None)
+            or getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+        )
+
+        if key_secret and razorpay_order_id and razorpay_payment_id and razorpay_signature:
+            # Razorpay signature = HMAC-SHA256(order_id + '|' + payment_id, key_secret)
+            expected_signature = hmac.new(
+                key_secret.encode('utf-8'),
+                f'{razorpay_order_id}|{razorpay_payment_id}'.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+
+            if not hmac.compare_digest(expected_signature, razorpay_signature):
+                return Response(
+                    {'message': 'Payment signature verification failed. Payment not recorded.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # ── Mark Invoice as Paid ─────────────────────────────────────────────
         invoice.status = 'paid'
         invoice.save(update_fields=['status'])
 
-        # Auto-send WhatsApp payment confirmation
-        user_profile = getattr(invoice.user, 'profile', None)
+        # ── Auto-send WhatsApp payment confirmation ──────────────────────────
         client = invoice.client
         raw_phone = (client.phone or '').strip().replace(' ', '').replace('-', '')
         if raw_phone:
@@ -201,7 +263,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             send_whatsapp_message(phone_e164, confirmation_msg, user_profile=user_profile)
 
         return Response({
-            'message': f"Payment verified! Invoice {invoice.invoice_number} marked as Paid.",
+            'message': f'Payment verified! Invoice {invoice.invoice_number} marked as Paid.',
             'status': 'paid'
         }, status=status.HTTP_200_OK)
 
