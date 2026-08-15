@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api, { API_BASE_URL } from './api';
 import { Sidebar } from './components/Sidebar';
-import { AuthModal } from './components/AuthModal';
+import { LandingPage } from './components/LandingPage';
 import { NewInvoiceModal } from './components/NewInvoiceModal';
 import { NewClientModal } from './components/NewClientModal';
 import { BulkWhatsAppModal } from './components/BulkWhatsAppModal';
@@ -224,7 +224,7 @@ export function App() {
   };
 
   if (!user) {
-    return <AuthModal onSuccess={(u) => setUser(u)} />;
+    return <LandingPage onSuccess={(u) => setUser(u)} />;
   }
 
   const currentDateStr = new Date().toLocaleDateString('en-US', {
