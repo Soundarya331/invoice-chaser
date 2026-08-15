@@ -1,10 +1,22 @@
 import axios from 'axios';
 
-// Smart URL Normalizer: Ensures /api/v1 is ALWAYS appended regardless of Vercel env variable trailing slashes
+// Smart URL Resolver:
+// 1. Use VITE_API_BASE_URL env var if set (preferred — set this in Vercel dashboard)
+// 2. If running in production (not localhost) fall back to the known Render backend
+// 3. Otherwise use local dev server
 const getBaseUrl = (): string => {
-  let envUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
+  let envUrl = import.meta.env.VITE_API_BASE_URL || '';
+
+  if (!envUrl) {
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+    envUrl = isLocalhost
+      ? 'http://127.0.0.1:8000/api/v1'
+      : 'https://invoice-chaser-api.onrender.com/api/v1';
+  }
+
   envUrl = envUrl.trim().replace(/\/+$/, '');
-  
   if (!envUrl.endsWith('/api/v1')) {
     envUrl = `${envUrl}/api/v1`;
   }
